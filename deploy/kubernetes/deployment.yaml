@@ -1,0 +1,151 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ba-pilot-rb01-20261122
+  namespace: deployflow-test
+  labels: &id001
+    app.kubernetes.io/name: ba-pilot-rb01-20261122
+    app.kubernetes.io/managed-by: deployflow
+    app.kubernetes.io/instance: bc4afd53-8ab8-4fe8-8602-08191294842e
+spec:
+  replicas: 1
+  selector:
+    matchLabels: *id001
+  template:
+    metadata:
+      labels: *id001
+      annotations:
+        deployflow.io/config-sha256: 3356248ca5afdec673312e33d1834f0ac2939d9a664ef2e3923f11f793dd29f3
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+        fsGroup: 10001
+      containers:
+      - name: ba-pilot-rb01-20261122
+        image: ghcr.io/damibegud/m-rb01-recipe-index:943276c05c433f189546afcff4a31c68431f6f86
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8401
+          name: http
+        envFrom:
+        - configMapRef:
+            name: ba-pilot-rb01-20261122-config
+        env:
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: ba-pilot-rb01-20261122-db
+              key: password
+        - name: SECRET_KEY_BASE
+          valueFrom:
+            secretKeyRef:
+              name: ba-pilot-rb01-20261122-db
+              key: SECRET_KEY_BASE
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: http
+        startupProbe:
+          httpGet:
+            path: /health/live
+            port: http
+          failureThreshold: 15
+          periodSeconds: 5
+        volumeMounts:
+        - name: runtime-tmp
+          mountPath: /tmp
+      volumes:
+      - name: runtime-tmp
+        emptyDir:
+          sizeLimit: 64Mi
+      - name: postgres-data
+        emptyDir:
+          sizeLimit: 256Mi
+      - name: postgres-tmp
+        emptyDir:
+          sizeLimit: 32Mi
+      - name: postgres-run
+        emptyDir:
+          sizeLimit: 16Mi
+      initContainers:
+      - name: postgres
+        image: docker.io/library/postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+        imagePullPolicy: IfNotPresent
+        restartPolicy: Always
+        args:
+        - postgres
+        - -c
+        - listen_addresses=127.0.0.1
+        - -p
+        - '5432'
+        env:
+        - name: POSTGRES_DB
+          value: application
+        - name: POSTGRES_USER
+          value: application
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: ba-pilot-rb01-20261122-db
+              key: password
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 70
+          runAsGroup: 70
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        - name: postgres-tmp
+          mountPath: /tmp
+        - name: postgres-run
+          mountPath: /var/run/postgresql
+        startupProbe:
+          exec:
+            command:
+            - pg_isready
+            - -h
+            - 127.0.0.1
+            - -p
+            - '5432'
+            - -U
+            - application
+            - -d
+            - application
+          periodSeconds: 2
+          failureThreshold: 30
+  strategy:
+    type: Recreate
