@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: df-m-rb01-recipe-index-d49d8244eeb540f7
+  namespace: deployflow-test
+  labels: &id001
+    app.kubernetes.io/name: df-m-rb01-recipe-index-d49d8244eeb540f7
+    app.kubernetes.io/managed-by: deployflow
+    app.kubernetes.io/instance: d49d8244-eeb5-40f7-b696-ea520233458e
+spec:
+  type: ClusterIP
+  selector: *id001
+  ports:
+  - name: http
+    port: 8401
+    targetPort: http
