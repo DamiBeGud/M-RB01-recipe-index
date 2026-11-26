@@ -1,0 +1,17 @@
+.git
+**/.git
+**/.env
+**/.env.*
+**/.netrc
+**/.npmrc
+**/id_rsa
+**/id_ed25519
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+**/*.jks
+**/__pycache__
+**/.venv
+**/node_modules
+**/target
