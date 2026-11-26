@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ba-rb01-shared-postgres-20261125
+  namespace: deployflow-test
+  labels: &id001
+    app.kubernetes.io/name: ba-rb01-shared-postgres-20261125
+    app.kubernetes.io/managed-by: deployflow
+    app.kubernetes.io/instance: ab321be2-03f6-43f1-a346-eabb44f1ae91
+spec:
+  type: ClusterIP
+  selector: *id001
+  ports:
+  - name: http
+    port: 8401
+    targetPort: http

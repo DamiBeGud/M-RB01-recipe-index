@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ba-rb01-shared-postgres-20261125-config
+  namespace: deployflow-test
+  labels:
+    app.kubernetes.io/name: ba-rb01-shared-postgres-20261125
+    app.kubernetes.io/managed-by: deployflow
+    app.kubernetes.io/instance: ab321be2-03f6-43f1-a346-eabb44f1ae91
+data:
+  PORT: '8401'
+  HOST: 0.0.0.0
+  RAILS_ENV: production
+  RAILS_LOG_TO_STDOUT: '1'
+  TMPDIR: /tmp
