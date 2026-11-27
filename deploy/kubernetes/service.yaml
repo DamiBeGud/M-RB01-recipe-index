@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ba-freeze-pilot-rb01-20261127
+  namespace: deployflow-test
+  labels: &id001
+    app.kubernetes.io/name: ba-freeze-pilot-rb01-20261127
+    app.kubernetes.io/managed-by: deployflow
+    app.kubernetes.io/instance: 77b00d20-4445-407d-9698-d6d35923f933
+spec:
+  type: ClusterIP
+  selector: *id001
+  ports:
+  - name: http
+    port: 8401
+    targetPort: http

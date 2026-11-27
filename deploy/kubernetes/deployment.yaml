@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ba-freeze-pilot-rb01-20261127
+  namespace: deployflow-test
+  labels: &id001
+    app.kubernetes.io/name: ba-freeze-pilot-rb01-20261127
+    app.kubernetes.io/managed-by: deployflow
+    app.kubernetes.io/instance: 77b00d20-4445-407d-9698-d6d35923f933
+spec:
+  replicas: 1
+  selector:
+    matchLabels: *id001
+  template:
+    metadata:
+      labels: *id001
+      annotations:
+        deployflow.io/config-sha256: 3356248ca5afdec673312e33d1834f0ac2939d9a664ef2e3923f11f793dd29f3
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+        fsGroup: 10001
+      containers:
+      - name: ba-freeze-pilot-rb01-20261127
+        image: ghcr.io/damibegud/m-rb01-recipe-index:3983be7bb351f375b679d6fac3c9b4e6acc865c1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8401
+          name: http
+        envFrom:
+        - configMapRef:
+            name: ba-freeze-pilot-rb01-20261127-config
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: ba-freeze-pilot-rb01-20261127
+              key: DATABASE_URL
+        - name: SECRET_KEY_BASE
+          valueFrom:
+            secretKeyRef:
+              name: ba-freeze-pilot-rb01-20261127
+              key: SECRET_KEY_BASE
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: http
+        startupProbe:
+          httpGet:
+            path: /health/live
+            port: http
+          failureThreshold: 15
+          periodSeconds: 5
+        volumeMounts:
+        - name: runtime-tmp
+          mountPath: /tmp
+      volumes:
+      - name: runtime-tmp
+        emptyDir:
+          sizeLimit: 64Mi
